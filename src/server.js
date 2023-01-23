@@ -24,6 +24,7 @@ wss.on("connection", (socket) => {
     console.log("Disconnected from the Browser ❌");
   });
   socket.on("message", (message) => {
+    // blob(buffer)로 들어온 것을 string으로 변경
     console.log(message.toString());
   });
   socket.send("hello!!!");
