@@ -17,13 +17,16 @@ const server = http.createServer(app);
 
 const wss = new WebSocket.Server({ server });
 
-// 백엔드 socket에 서버와 클라이언트 사이의 연결 정보가 있음
-// frontend와 real-time 소통 가능
-function handleConnection(socket) {
-  console.log(socket);
-}
-
-// on method를 이용하여 이벤트를 기다리고 이벤트가 발생하면 callback fn을 실행
-wss.on("connection", handleConnection);
+wss.on("connection", (socket) => {
+  console.log("Connected to Browser ✅");
+  // .send는 wss서버 method가 아닌 socket의 method임
+  socket.on("close", () => {
+    console.log("Disconnected from the Browser ❌");
+  });
+  socket.on("message", (message) => {
+    console.log(message.toString());
+  });
+  socket.send("hello!!!");
+});
 
 server.listen(3000, handleListen);
