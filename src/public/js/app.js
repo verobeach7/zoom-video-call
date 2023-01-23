@@ -3,7 +3,6 @@ const messageForm = document.querySelector("#message");
 const nickForm = document.querySelector("#nick");
 const socket = new WebSocket(`ws://${window.location.host}`);
 
-// socket.send가 string만 보낼 수 있으므로 json객체를 string으로 바꿔주는 함수 작성
 function makeMessage(type, payload) {
   const msg = { type, payload };
   return JSON.stringify(msg);
@@ -34,6 +33,10 @@ function handleNickSubmit(event) {
   event.preventDefault();
   const input = nickForm.querySelector("input");
   socket.send(makeMessage("nickname", input.value));
+  const li = document.createElement("li");
+  li.innerText = `You: ${input.value}`;
+  messageList.append(li);
+  input.value = "";
 }
 
 messageForm.addEventListener("submit", handleSubmit);
