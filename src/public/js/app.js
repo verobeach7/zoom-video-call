@@ -7,6 +7,7 @@ const room = document.getElementById("room");
 room.hidden = true;
 
 let roomName;
+let nickname;
 
 function addMessage(message) {
   const ul = room.querySelector("ul");
@@ -31,13 +32,19 @@ function handleNicknameSubmit(event) {
   // #name 안에 있는 첫번째 input을 반환함.
   const input = room.querySelector("#name input");
   socket.emit("nickname", input.value);
+  nickname = input.value;
+  const presentName = room.querySelector("#presentName");
+  presentName.innerText = `Nickname: ${nickname}`;
+  input.value = "";
 }
 
 function showRoom() {
   welcome.hidden = true;
   room.hidden = false;
-  const h3 = room.querySelector("h3");
-  h3.innerText = `Room ${roomName}`;
+  const presentRoom = room.querySelector("#presentRoom");
+  presentRoom.innerText = `Room: ${roomName}`;
+  const presentName = room.querySelector("#presentName");
+  presentName.innerText = `Nickname: ${nickname}`;
   const msgForm = room.querySelector("#msg");
   const nameForm = room.querySelector("#name");
   msgForm.addEventListener("submit", handleMessageSubmit);
@@ -46,10 +53,13 @@ function showRoom() {
 
 function handleRoomSubmit(event) {
   event.preventDefault();
-  const input = form.querySelector("input");
-  socket.emit("enter_room", input.value, showRoom);
-  roomName = input.value;
-  input.value = "";
+  const roomInput = form.querySelector("#roomname");
+  const nameInput = form.querySelector("#nickname");
+  socket.emit("enter_room", roomInput.value, nameInput.value, showRoom);
+  roomName = roomInput.value;
+  nickname = nameInput.value;
+  roomInput.value = "";
+  nameInput.value = "";
 }
 
 form.addEventListener("submit", handleRoomSubmit);
