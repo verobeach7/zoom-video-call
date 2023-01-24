@@ -24,6 +24,15 @@ wsServer.on("connection", (socket) => {
     done();
     socket.to(roomName).emit("welcome");
   });
+  // disconnecting은 socket.io 고유의 Event
+  socket.on("disconnecting", () => {
+    // socket.rooms는 자바스크립트 Set 자료구조로 forEach 순회 가능
+    socket.rooms.forEach((room) => socket.to(room).emit("bye"));
+  });
+  socket.on("new_message", (msg, room, done) => {
+    socket.to(room).emit("new_message", msg);
+    done();
+  });
 });
 
 httpServer.listen(3000, handleListen);
