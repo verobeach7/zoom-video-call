@@ -16,13 +16,14 @@ const httpServer = http.createServer(app);
 const wsServer = new Server(httpServer);
 
 wsServer.on("connection", (socket) => {
+  socket.onAny((event) => {
+    console.log(`Socket Event: ${event}`);
+  });
   socket.on("enter_room", (roomName, done) => {
-    console.log(roomName);
-    setTimeout(() => {
-      // 여기서 실행시키는 done 함수는 프론트엔드에서 실행함.
-      // argument를 넘기는 것이 가능!!!
-      done("Hello from the backend.");
-    }, 10000);
+    // console.log(socket.rooms); // Set { <socket.id> }
+    socket.join(roomName);
+    // console.log(socket.rooms); // Set { <socket.id>, roomName }
+    done();
   });
 });
 
