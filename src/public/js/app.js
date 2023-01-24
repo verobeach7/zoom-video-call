@@ -17,14 +17,20 @@ function addMessage(message) {
 
 function handleMessageSubmit(event) {
   event.preventDefault();
-  const input = room.querySelector("input");
-  // value에 따로 넣어주지 않으면 input.value가 비워져서 나한테는 공백으로 보이게 됨.
+  // #msg 안에 있는 첫번째 input을 반환함.
+  const input = room.querySelector("#msg input");
   const value = input.value;
   socket.emit("new_message", input.value, roomName, () => {
-    // input.value = "";를 여기에 넣어줄 수도 있지만 서버와 통신이 늦어지는 경우 input에서 늦게 지워지게 됨.
     addMessage(`You: ${value}`);
   });
   input.value = "";
+}
+
+function handleNicknameSubmit(event) {
+  event.preventDefault();
+  // #name 안에 있는 첫번째 input을 반환함.
+  const input = room.querySelector("#name input");
+  socket.emit("nickname", input.value);
 }
 
 function showRoom() {
@@ -32,8 +38,10 @@ function showRoom() {
   room.hidden = false;
   const h3 = room.querySelector("h3");
   h3.innerText = `Room ${roomName}`;
-  const form = room.querySelector("form");
-  form.addEventListener("submit", handleMessageSubmit);
+  const msgForm = room.querySelector("#msg");
+  const nameForm = room.querySelector("#name");
+  msgForm.addEventListener("submit", handleMessageSubmit);
+  nameForm.addEventListener("submit", handleNicknameSubmit);
 }
 
 function handleRoomSubmit(event) {
@@ -46,15 +54,12 @@ function handleRoomSubmit(event) {
 
 form.addEventListener("submit", handleRoomSubmit);
 
-// welcome 이벤트 발생 시 작동
-socket.on("welcome", () => {
-  addMessage("Someone Joined.");
+socket.on("welcome", (user) => {
+  addMessage(`${user} Joined.`);
 });
 
-socket.on("bye", () => {
-  addMessage("Someone Left ㅠㅠ");
+socket.on("bye", (user) => {
+  addMessage(`${user} Left ㅠㅠ`);
 });
 
-// 아래 2개는 똑같음.
 socket.on("new_message", addMessage);
-// socket.on("new_message", (msg) => {addMessage(msg);});
