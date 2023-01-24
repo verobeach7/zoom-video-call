@@ -8,6 +8,13 @@ room.hidden = true;
 
 let roomName;
 
+function addMessage(message) {
+  const ul = room.querySelector("ul");
+  const li = document.createElement("li");
+  li.innerText = message;
+  ul.appendChild(li);
+}
+
 function showRoom() {
   welcome.hidden = true;
   room.hidden = false;
@@ -18,9 +25,14 @@ function showRoom() {
 function handleRoomSubmit(event) {
   event.preventDefault();
   const input = form.querySelector("input");
-  socket.emit("enter_room", { payload: input.value }, showRoom);
+  socket.emit("enter_room", input.value, showRoom);
   roomName = input.value;
   input.value = "";
 }
 
 form.addEventListener("submit", handleRoomSubmit);
+
+// welcome 이벤트 발생 시 작동
+socket.on("welcome", () => {
+  addMessage("Someone Joined.");
+});
