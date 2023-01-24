@@ -16,40 +16,14 @@ const httpServer = http.createServer(app);
 const wsServer = new Server(httpServer);
 
 wsServer.on("connection", (socket) => {
-  // socket을 통해 메시지와 함수를 받음
-  socket.on("enter_room", (msg, done) => {
-    console.log(msg);
-    // 10초 후 프론트엔드에 있는 함수를 실행함(여기서 실행되는 것이 아님)
+  socket.on("enter_room", (roomName, done) => {
+    console.log(roomName);
     setTimeout(() => {
-      done();
+      // 여기서 실행시키는 done 함수는 프론트엔드에서 실행함.
+      // argument를 넘기는 것이 가능!!!
+      done("Hello from the backend.");
     }, 10000);
   });
 });
 
-/* const wss = new WebSocket.Server({ server });
-
-const sockets = [];
-
-wss.on("connection", (socket) => {
-  sockets.push(socket);
-  socket["nickname"] = "Anonymous";
-  console.log("Connected to Browser ✅");
-  socket.on("close", () => {
-    console.log("Disconnected from the Browser ❌");
-  });
-  socket.on("message", (msg) => {
-    const message = JSON.parse(msg);
-    switch (message.type) {
-      case "new_message":
-        sockets.forEach((aSocket) =>
-          aSocket.send(`${socket.nickname}: ${message.payload}`)
-        );
-        break;
-      case "nickname":
-        socket["nickname"] = message.payload;
-        break;
-    }
-  });
-});
- */
 httpServer.listen(3000, handleListen);
