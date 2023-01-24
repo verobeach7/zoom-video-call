@@ -16,7 +16,14 @@ const httpServer = http.createServer(app);
 const wsServer = new Server(httpServer);
 
 wsServer.on("connection", (socket) => {
-  console.log(socket);
+  // socket을 통해 메시지와 함수를 받음
+  socket.on("enter_room", (msg, done) => {
+    console.log(msg);
+    // 10초 후 프론트엔드에 있는 함수를 실행함(여기서 실행되는 것이 아님)
+    setTimeout(() => {
+      done();
+    }, 10000);
+  });
 });
 
 /* const wss = new WebSocket.Server({ server });
