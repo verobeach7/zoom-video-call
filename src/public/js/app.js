@@ -18,7 +18,6 @@ function addMessage(message) {
 
 function handleMessageSubmit(event) {
   event.preventDefault();
-  // #msg 안에 있는 첫번째 input을 반환함.
   const input = room.querySelector("#msg input");
   const value = input.value;
   socket.emit("new_message", input.value, roomName, () => {
@@ -29,7 +28,6 @@ function handleMessageSubmit(event) {
 
 function handleNicknameSubmit(event) {
   event.preventDefault();
-  // #name 안에 있는 첫번째 input을 반환함.
   const input = room.querySelector("#name input");
   socket.emit("nickname", input.value);
   nickname = input.value;
@@ -90,5 +88,3 @@ socket.on("room_change", (rooms) => {
     roomList.append(li);
   });
 });
-// socket.on("room_change", console.log);
-// socket.on("room_change", (msg) => console.log(msg));
