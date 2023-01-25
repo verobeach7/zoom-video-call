@@ -71,6 +71,12 @@ wsServer.on("connection", (socket) => {
     done();
   });
   socket.on("nickname", (nickname) => (socket["nickname"] = nickname));
+  socket.on("leave_room", (roomName, done) => {
+    socket.leave(roomName);
+    done();
+    socket.to(roomName).emit("new_count", socket.nickname, countRoom(roomName));
+    wsServer.sockets.emit("room_change", publicRooms());
+  });
 });
 
 httpServer.listen(3000, handleListen);

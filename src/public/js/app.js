@@ -36,17 +36,31 @@ function handleNicknameSubmit(event) {
   input.value = "";
 }
 
+function hideRoom(newCount) {
+  welcome.hidden = false;
+  room.hidden = true;
+  /* const presentRoom = room.querySelector("#presentRoom");
+  presentRoom.innerText = `Room: ${roomName} (${newCount})`; */
+}
+
+function handleLeaveBtn(event) {
+  event.preventDefault();
+  socket.emit("leave_room", roomName, hideRoom);
+}
+
 function showRoom(newCount) {
   welcome.hidden = true;
   room.hidden = false;
   const presentRoom = room.querySelector("#presentRoom");
-  presentRoom.innerText = `Room: ${roomName} (${newCount})`;
   const presentName = room.querySelector("#presentName");
+  presentRoom.innerText = `Room: ${roomName} (${newCount})`;
   presentName.innerText = `Nickname: ${nickname}`;
   const msgForm = room.querySelector("#msg");
   const nameForm = room.querySelector("#name");
+  const leaveBtn = room.querySelector("#leaveBtn");
   msgForm.addEventListener("submit", handleMessageSubmit);
   nameForm.addEventListener("submit", handleNicknameSubmit);
+  leaveBtn.addEventListener("click", handleLeaveBtn);
 }
 
 function handleRoomSubmit(event) {
@@ -87,4 +101,10 @@ socket.on("room_change", (rooms) => {
     li.innerText = room;
     roomList.append(li);
   });
+});
+
+socket.on("new_count", (user, newCount) => {
+  const presentRoom = room.querySelector("#presentRoom");
+  presentRoom.innerText = `Room: ${roomName} (${newCount})`;
+  addMessage(`${user} Left ㅠㅠ`);
 });
