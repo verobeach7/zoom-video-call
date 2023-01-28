@@ -19,7 +19,7 @@ async function getCameras() {
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
     const cameras = devices.filter((device) => device.kind === "videoinput");
-    const currentCamera = myStream.getVideoTracks();
+    const currentCamera = myStream.getVideoTracks()[0];
     cameras.forEach((camera) => {
       const option = document.createElement("option");
       option.value = camera.deviceId;
@@ -87,6 +87,16 @@ function handleCameraClick() {
 
 async function handleCameraChange() {
   await getMedia(camerasSelect.value);
+  // camera가 바뀌면 sender 정보도 바꿔주기
+  if (myPeerConnection) {
+    // 변경한 카메라에서 video track 가져오기
+    const videoTrack = myStream.getVideoTracks()[0];
+    // sender: peer로 보내진 media stream track을 컨트롤 할 수 있음
+    const videoSender = myPeerConnection
+      .getSenders()
+      .find((sender) => sender.track.kind === "video");
+    videoSender.replaceTrack(videoTrack);
+  }
   if (muted) {
     myStream.getAudioTracks().forEach((track) => (track.enabled = false));
   } else {
@@ -126,32 +136,24 @@ welcomeForm.addEventListener("submit", handleWelcomeSubmit);
 
 /* Socket Code */
 
-// Browser A
 socket.on("welcome", async () => {
   const offer = await myPeerConnection.createOffer();
   myPeerConnection.setLocalDescription(offer);
-  console.log("sent the offer");
   socket.emit("offer", offer, roomName);
 });
 
-// Browser B
 socket.on("offer", async (offer) => {
-  console.log("recieved the offer");
   myPeerConnection.setRemoteDescription(offer);
   const answer = await myPeerConnection.createAnswer();
   myPeerConnection.setLocalDescription(answer);
-  console.log("sent the answer");
   socket.emit("answer", answer, roomName);
 });
 
 socket.on("answer", (answer) => {
-  console.log("recieved the answer");
   myPeerConnection.setRemoteDescription(answer);
 });
 
-// Browser A & B
 socket.on("ice", (ice) => {
-  console.log("recieved candidate");
   myPeerConnection.addIceCandidate(ice);
 });
 
@@ -170,15 +172,11 @@ function makeConnection() {
 
 // data는 이벤트에서 발생한 data
 function handleIce(data) {
-  console.log("sent candidate");
   socket.emit("ice", data.candidate, roomName);
 }
 
 // data는 mediastream
 function handleAddStream(data) {
-  console.log("got an stream from my peer");
-  console.log("Peer's Stream", data.streams[0]);
-  console.log("My Stream", myStream);
   const peerFace = document.getElementById("peerFace");
   peerFace.srcObject = data.streams[0];
 }
