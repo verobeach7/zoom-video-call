@@ -136,22 +136,49 @@ socket.on("welcome", async () => {
 
 // Browser B
 socket.on("offer", async (offer) => {
+  console.log("recieved the offer");
   myPeerConnection.setRemoteDescription(offer);
   const answer = await myPeerConnection.createAnswer();
   myPeerConnection.setLocalDescription(answer);
+  console.log("sent the answer");
   socket.emit("answer", answer, roomName);
 });
 
 socket.on("answer", (answer) => {
+  console.log("recieved the answer");
   myPeerConnection.setRemoteDescription(answer);
+});
+
+// Browser A & B
+socket.on("ice", (ice) => {
+  console.log("recieved candidate");
+  myPeerConnection.addIceCandidate(ice);
 });
 
 /* RTC Code */
 
 function makeConnection() {
   myPeerConnection = new RTCPeerConnection();
+  // connection을 만듦과 동시에 icecandidate 이벤트 기다리기
+  myPeerConnection.addEventListener("icecandidate", handleIce);
+  myPeerConnection.addEventListener("track", handleAddStream);
   // addStream()은 오랜된 거라 사용하지 않음. 대신 addTrack 사용!!!
   myStream
     .getTracks()
     .forEach((track) => myPeerConnection.addTrack(track, myStream));
+}
+
+// data는 이벤트에서 발생한 data
+function handleIce(data) {
+  console.log("sent candidate");
+  socket.emit("ice", data.candidate, roomName);
+}
+
+// data는 mediastream
+function handleAddStream(data) {
+  console.log("got an stream from my peer");
+  console.log("Peer's Stream", data.streams[0]);
+  console.log("My Stream", myStream);
+  const peerFace = document.getElementById("peerFace");
+  peerFace.srcObject = data.streams[0];
 }
