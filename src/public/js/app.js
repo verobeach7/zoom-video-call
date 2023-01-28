@@ -14,6 +14,7 @@ let muted = false;
 let cameraOff = false;
 let roomName;
 let myPeerConnection;
+let myDataChannel;
 
 async function getCameras() {
   try {
@@ -132,12 +133,23 @@ welcomeForm.addEventListener("submit", handleWelcomeSubmit);
 /* Socket Code */
 
 socket.on("welcome", async () => {
+  // Data Channel 생성
+  myDataChannel = myPeerConnection.createDataChannel("chat");
+  // 메시지 받을 때 이벤트 등록
+  myDataChannel.addEventListener("message", console.log); // event를 console.log함
+  console.log("made data channel");
   const offer = await myPeerConnection.createOffer();
   myPeerConnection.setLocalDescription(offer);
   socket.emit("offer", offer, roomName);
 });
 
 socket.on("offer", async (offer) => {
+  // peer A가 Data Channel을 만든 경우 이를 이벤트로 받아서 채널 등록
+  myPeerConnection.addEventListener("datachannel", (event) => {
+    myDataChannel = event.channel;
+    // 메시지 받을 때 이벤트 등록
+    myDataChannel.addEventListener("message", console.log);
+  });
   myPeerConnection.setRemoteDescription(offer);
   const answer = await myPeerConnection.createAnswer();
   myPeerConnection.setLocalDescription(answer);
