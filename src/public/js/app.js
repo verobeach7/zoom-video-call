@@ -87,11 +87,8 @@ function handleCameraClick() {
 
 async function handleCameraChange() {
   await getMedia(camerasSelect.value);
-  // camera가 바뀌면 sender 정보도 바꿔주기
   if (myPeerConnection) {
-    // 변경한 카메라에서 video track 가져오기
     const videoTrack = myStream.getVideoTracks()[0];
-    // sender: peer로 보내진 media stream track을 컨트롤 할 수 있음
     const videoSender = myPeerConnection
       .getSenders()
       .find((sender) => sender.track.kind === "video");
@@ -124,8 +121,6 @@ async function initCall() {
 async function handleWelcomeSubmit(event) {
   event.preventDefault();
   const input = welcomeForm.querySelector("input");
-  // initCall()을 emit의 함수로 넣어주면 실행속도가 너무 빨라서 offer 이벤트를 받을 때 아직 myPeerConnection이 없어서 에러가 남
-  // 이를 해결하기 위해 async await으로 initCall()을 사전에 실행해줌
   await initCall();
   socket.emit("join_room", input.value);
   roomName = input.value;
@@ -160,11 +155,21 @@ socket.on("ice", (ice) => {
 /* RTC Code */
 
 function makeConnection() {
-  myPeerConnection = new RTCPeerConnection();
-  // connection을 만듦과 동시에 icecandidate 이벤트 기다리기
+  myPeerConnection = new RTCPeerConnection({
+    iceServers: [
+      {
+        urls: [
+          "stun:stun.l.google.com:19302",
+          "stun:stun1.l.google.com:19302",
+          "stun:stun2.l.google.com:19302",
+          "stun:stun3.l.google.com:19302",
+          "stun:stun4.l.google.com:19302",
+        ],
+      },
+    ],
+  });
   myPeerConnection.addEventListener("icecandidate", handleIce);
   myPeerConnection.addEventListener("track", handleAddStream);
-  // addStream()은 오랜된 거라 사용하지 않음. 대신 addTrack 사용!!!
   myStream
     .getTracks()
     .forEach((track) => myPeerConnection.addTrack(track, myStream));
