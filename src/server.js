@@ -40,15 +40,22 @@ wsServer.on("connection", (socket) => {
   wsServer.sockets.emit("room_change", publicRooms());
   socket["nickname"] = "Anonymous";
   socket.on("check_count", (roomName, done) => {
-    console.log("check", roomName, countUsers(roomName));
-    done(countUsers(roomName));
+    done(publicRooms());
   });
   socket.on("join_room", (roomName, nickname, done) => {
-    socket["nickname"] = nickname;
-    socket.join(roomName);
-    socket.to(roomName).emit("welcome", socket.nickname, countUsers(roomName));
-    done(countUsers(roomName));
-    wsServer.sockets.emit("room_change", publicRooms());
+    const a = publicRooms();
+    const currentRoom = a.filter((room) => room.roomName === roomName);
+    if (currentRoom[0]?.countUsers > 1) {
+      return;
+    } else {
+      socket["nickname"] = nickname;
+      socket.join(roomName);
+      socket
+        .to(roomName)
+        .emit("welcome", socket.nickname, countUsers(roomName));
+      done(countUsers(roomName));
+      wsServer.sockets.emit("room_change", publicRooms());
+    }
   });
   socket.on("offer", (offer, roomName) => {
     socket.to(roomName).emit("offer", offer);

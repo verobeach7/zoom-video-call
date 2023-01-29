@@ -16,6 +16,7 @@ let roomName;
 let myPeerConnection;
 let myDataChannel;
 let nickname;
+let roomsInfo;
 
 async function getCameras() {
   try {
@@ -116,12 +117,7 @@ const welcomeForm = welcome.querySelector("form");
 async function initCall() {
   welcome.hidden = true;
   call.hidden = false;
-  /* socket.emit("check_count", roomName, async (newCount) => {
-    if (newCount > 1) {
-      return console.log("full", newCount);
-    } else { */
   await getMedia();
-  // 인원수 초과 에러 발생2
   makeConnection();
 }
 
@@ -148,14 +144,24 @@ async function handleWelcomeSubmit(event) {
   event.preventDefault();
   const roomInput = welcomeForm.querySelector("#roomInput");
   const nickInput = welcomeForm.querySelector("#nickInput");
-  // 인원수 초과 에러 발생1
-  await initCall();
-  // 여기서부터 어디가 잘못됐는지 콘솔 찍어보면서 확인!!
-  socket.emit("join_room", roomInput.value, nickInput.value, showRoom);
-  roomName = roomInput.value;
-  nickname = nickInput.value;
-  roomInput.value = "";
-  nickInput.value = "";
+  console.log("submit", roomsInfo);
+  const wantRoom = roomsInfo.filter(
+    (room) => room.roomName === roomInput.value
+  );
+  const currentCount = wantRoom[0]?.countUsers;
+  console.log(currentCount);
+  if (currentCount > 1) {
+    alert("The room is full.");
+  } else {
+    roomName = roomInput.value;
+    nickname = nickInput.value;
+    await initCall();
+    socket.emit("join_room", roomInput.value, nickInput.value, showRoom);
+    roomName = roomInput.value;
+    nickname = nickInput.value;
+    roomInput.value = "";
+    nickInput.value = "";
+  }
 }
 
 welcomeForm.addEventListener("submit", handleWelcomeSubmit);
@@ -176,7 +182,6 @@ function handleChatSubmit(event) {
   li.id = "myMsg";
   li.append(span);
   ul.appendChild(li);
-  console.log(li);
   input.value = "";
   input.focus();
 }
@@ -199,7 +204,6 @@ function handleMessage(event) {
   span.innerText = event.data;
   li.append(span);
   ul.appendChild(li);
-  console.log(li);
 }
 
 function handleRoomClick(event) {
@@ -252,6 +256,8 @@ socket.on("bye", (user, newCount) => {
 });
 
 socket.on("room_change", (rooms) => {
+  roomsInfo = rooms;
+  console.log("room_change", roomsInfo);
   const roomList = welcome.querySelector("ul");
   roomList.innerText = "";
   if (rooms.length === 0) {
