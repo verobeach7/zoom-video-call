@@ -23,7 +23,10 @@ function publicRooms() {
   const publicRooms = [];
   rooms.forEach((_, key) => {
     if (sids.get(key) === undefined) {
-      publicRooms.push(key);
+      const roomName = key;
+      const countUsers = wsServer.sockets.adapter.rooms.get(key)?.size;
+      const room = { roomName, countUsers };
+      publicRooms.push(room);
     }
   });
   return publicRooms;

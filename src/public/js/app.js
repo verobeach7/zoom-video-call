@@ -114,6 +114,8 @@ const welcome = document.getElementById("welcome");
 const welcomeForm = welcome.querySelector("form");
 
 async function initCall() {
+  welcome.hidden = true;
+  call.hidden = false;
   /* socket.emit("check_count", roomName, async (newCount) => {
     if (newCount > 1) {
       return console.log("full", newCount);
@@ -134,11 +136,9 @@ function handleLeaveBtn(event) {
 }
 
 function showRoom(newCount) {
-  welcome.hidden = true;
-  call.hidden = false;
   const presentRoom = call.querySelector("#presentRoom");
   const presentName = call.querySelector("#presentName");
-  presentRoom.innerText = `Room: ${roomName} (${newCount})`;
+  presentRoom.innerText = `Room: ${roomName} (${newCount}명)`;
   presentName.innerText = `Nickname: ${nickname}`;
   const leaveBtn = call.querySelector("#leaveBtn");
   leaveBtn.addEventListener("click", handleLeaveBtn);
@@ -171,9 +171,14 @@ function handleChatSubmit(event) {
   const input = chatForm.querySelector("input");
   myDataChannel.send(input.value);
   const li = document.createElement("li");
-  li.innerText = input.value;
+  const span = document.createElement("span");
+  span.innerText = input.value;
+  li.id = "myMsg";
+  li.append(span);
   ul.appendChild(li);
+  console.log(li);
   input.value = "";
+  input.focus();
 }
 
 chatForm.addEventListener("submit", handleChatSubmit);
@@ -183,13 +188,24 @@ chatForm.addEventListener("submit", handleChatSubmit);
 function addMessage(msg) {
   const li = document.createElement("li");
   li.innerText = msg;
+  li.id = "notice";
   ul.appendChild(li);
 }
 
 function handleMessage(event) {
   const li = document.createElement("li");
-  li.innerText = event.data;
+  const span = document.createElement("span");
+  li.id = "msg";
+  span.innerText = event.data;
+  li.append(span);
   ul.appendChild(li);
+  console.log(li);
+}
+
+function handleRoomClick(event) {
+  event.preventDefault();
+  const roomInput = welcomeForm.querySelector("#roomInput");
+  roomInput.value = event.target.value;
 }
 
 socket.on("welcome", async (user, newCount) => {
@@ -243,8 +259,17 @@ socket.on("room_change", (rooms) => {
   }
   rooms.forEach((room) => {
     const li = document.createElement("li");
-    li.innerText = room;
+    const button = document.createElement("button");
+    button.innerText = room.roomName;
+    button.value = room.roomName;
+    li.appendChild(button);
+    if (room.countUsers > 1) {
+      button.disabled = true;
+    } else {
+      button.disabled = false;
+    }
     roomList.append(li);
+    button.addEventListener("click", handleRoomClick);
   });
 });
 

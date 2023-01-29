@@ -1,0 +1,114 @@
+textarea:focus,
+input:focus {
+  outline: none;
+}
+
+#welcome {
+  margin: 0 auto;
+  width: 80%;
+}
+
+main {
+  padding: 0;
+}
+
+#welcome h4 {
+  margin: 0 auto;
+}
+
+ul {
+  list-style-type: none;
+  display: flex;
+  flex-direction: row;
+}
+ul li {
+  padding: 10px;
+}
+
+#call {
+  margin: 0 auto;
+  width: 80%;
+}
+
+#navWrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+#leaveBtn {
+  background-color: #e84118;
+  border: none;
+}
+
+#container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+#myStream {
+  margin: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+video {
+  margin: 10px;
+  border: 5px;
+  border-radius: 20px;
+}
+
+#chat {
+  margin-top: 20px;
+  border-radius: 10px;
+  height: 700px;
+  background-color: #f5f6fa;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
+#chat ul {
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#myMsg {
+  margin: 0 10px;
+  padding: 5px;
+  text-align: right;
+}
+
+#myMsg span {
+  border-radius: 20px;
+  padding: 5px 10px;
+  background-color: #138bee;
+  color: white;
+}
+
+#msg {
+  margin: 0 10px;
+  padding: 5px;
+  text-align: left;
+}
+
+#msg span {
+  border-radius: 20px;
+  padding: 5px 10px;
+  background-color: gray;
+  color: white;
+}
+
+#notice {
+  margin: 5px 10px;
+  font-size: 12px;
+  text-align: center;
+  border-radius: 20px;
+  padding: 5px 10px;
+  background-color: blanchedalmond;
+}
