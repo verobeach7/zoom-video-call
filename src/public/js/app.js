@@ -15,6 +15,7 @@ let cameraOff = false;
 let roomName;
 let myPeerConnection;
 let myDataChannel;
+let nickname;
 
 async function getCameras() {
   try {
@@ -110,45 +111,103 @@ camerasSelect.addEventListener("input", handleCameraChange);
 
 const welcome = document.getElementById("welcome");
 
-welcomeForm = welcome.querySelector("form");
+const welcomeForm = welcome.querySelector("form");
 
 async function initCall() {
+  /* socket.emit("check_count", roomName, async (newCount) => {
+    if (newCount > 1) {
+      return console.log("full", newCount);
+    } else { */
+  await getMedia();
+  // 인원수 초과 에러 발생2
+  makeConnection();
+}
+
+function hideRoom(newCount) {
+  welcome.hidden = false;
+  call.hidden = true;
+}
+
+function handleLeaveBtn(event) {
+  event.preventDefault();
+  socket.emit("leave_room", roomName, hideRoom);
+}
+
+function showRoom(newCount) {
   welcome.hidden = true;
   call.hidden = false;
-  await getMedia();
-  makeConnection();
+  const presentRoom = call.querySelector("#presentRoom");
+  const presentName = call.querySelector("#presentName");
+  presentRoom.innerText = `Room: ${roomName} (${newCount})`;
+  presentName.innerText = `Nickname: ${nickname}`;
+  const leaveBtn = call.querySelector("#leaveBtn");
+  leaveBtn.addEventListener("click", handleLeaveBtn);
 }
 
 async function handleWelcomeSubmit(event) {
   event.preventDefault();
-  const input = welcomeForm.querySelector("input");
+  const roomInput = welcomeForm.querySelector("#roomInput");
+  const nickInput = welcomeForm.querySelector("#nickInput");
+  // 인원수 초과 에러 발생1
   await initCall();
-  socket.emit("join_room", input.value);
-  roomName = input.value;
-  input.value = "";
+  // 여기서부터 어디가 잘못됐는지 콘솔 찍어보면서 확인!!
+  socket.emit("join_room", roomInput.value, nickInput.value, showRoom);
+  roomName = roomInput.value;
+  nickname = nickInput.value;
+  roomInput.value = "";
+  nickInput.value = "";
 }
 
 welcomeForm.addEventListener("submit", handleWelcomeSubmit);
 
+/* Chat Form */
+
+const chat = document.getElementById("chat");
+const chatForm = chat.querySelector("form");
+const ul = chat.querySelector("ul");
+
+function handleChatSubmit(event) {
+  event.preventDefault();
+  const input = chatForm.querySelector("input");
+  myDataChannel.send(input.value);
+  const li = document.createElement("li");
+  li.innerText = input.value;
+  ul.appendChild(li);
+  input.value = "";
+}
+
+chatForm.addEventListener("submit", handleChatSubmit);
+
 /* Socket Code */
 
-socket.on("welcome", async () => {
-  // Data Channel 생성
+function addMessage(msg) {
+  const li = document.createElement("li");
+  li.innerText = msg;
+  ul.appendChild(li);
+}
+
+function handleMessage(event) {
+  const li = document.createElement("li");
+  li.innerText = event.data;
+  ul.appendChild(li);
+}
+
+socket.on("welcome", async (user, newCount) => {
   myDataChannel = myPeerConnection.createDataChannel("chat");
-  // 메시지 받을 때 이벤트 등록
-  myDataChannel.addEventListener("message", console.log); // event를 console.log함
-  console.log("made data channel");
+  // myDataChannel.addEventListener("message", event.data);
+  myDataChannel.addEventListener("message", handleMessage);
   const offer = await myPeerConnection.createOffer();
   myPeerConnection.setLocalDescription(offer);
   socket.emit("offer", offer, roomName);
+  const presentRoom = call.querySelector("#presentRoom");
+  presentRoom.innerText = `Room: ${roomName} (${newCount})`;
+  addMessage(`${user} Joined.`);
 });
 
 socket.on("offer", async (offer) => {
-  // peer A가 Data Channel을 만든 경우 이를 이벤트로 받아서 채널 등록
   myPeerConnection.addEventListener("datachannel", (event) => {
     myDataChannel = event.channel;
-    // 메시지 받을 때 이벤트 등록
-    myDataChannel.addEventListener("message", console.log);
+    myDataChannel.addEventListener("message", handleMessage);
   });
   myPeerConnection.setRemoteDescription(offer);
   const answer = await myPeerConnection.createAnswer();
@@ -162,6 +221,31 @@ socket.on("answer", (answer) => {
 
 socket.on("ice", (ice) => {
   myPeerConnection.addIceCandidate(ice);
+});
+
+socket.on("new_count", (nickname, newCount) => {
+  const presentRoom = call.querySelector("#presentRoom");
+  presentRoom.innerText = `Room: ${roomName} (${newCount})`;
+  addMessage(`${nickname} Left ㅠㅠ`);
+});
+
+socket.on("bye", (user, newCount) => {
+  const presentRoom = call.querySelector("#presentRoom");
+  presentRoom.innerText = `Room: ${roomName} (${newCount})`;
+  addMessage(`${user} Left ㅠㅠ`);
+});
+
+socket.on("room_change", (rooms) => {
+  const roomList = welcome.querySelector("ul");
+  roomList.innerText = "";
+  if (rooms.length === 0) {
+    return;
+  }
+  rooms.forEach((room) => {
+    const li = document.createElement("li");
+    li.innerText = room;
+    roomList.append(li);
+  });
 });
 
 /* RTC Code */

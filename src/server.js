@@ -13,10 +13,39 @@ app.get("/*", (_, res) => res.redirect("/"));
 const httpServer = http.createServer(app);
 const wsServer = new Server(httpServer);
 
+function publicRooms() {
+  const {
+    sockets: {
+      adapter: { sids, rooms },
+    },
+  } = wsServer;
+  //   console.log(sids, rooms);
+  const publicRooms = [];
+  rooms.forEach((_, key) => {
+    if (sids.get(key) === undefined) {
+      publicRooms.push(key);
+    }
+  });
+  return publicRooms;
+}
+
+function countUsers(roomName) {
+  return wsServer.sockets.adapter.rooms.get(roomName)?.size;
+}
+
 wsServer.on("connection", (socket) => {
-  socket.on("join_room", (roomName) => {
+  wsServer.sockets.emit("room_change", publicRooms());
+  socket["nickname"] = "Anonymous";
+  socket.on("check_count", (roomName, done) => {
+    console.log("check", roomName, countUsers(roomName));
+    done(countUsers(roomName));
+  });
+  socket.on("join_room", (roomName, nickname, done) => {
+    socket["nickname"] = nickname;
     socket.join(roomName);
-    socket.to(roomName).emit("welcome");
+    socket.to(roomName).emit("welcome", socket.nickname, countUsers(roomName));
+    done(countUsers(roomName));
+    wsServer.sockets.emit("room_change", publicRooms());
   });
   socket.on("offer", (offer, roomName) => {
     socket.to(roomName).emit("offer", offer);
@@ -26,6 +55,22 @@ wsServer.on("connection", (socket) => {
   });
   socket.on("ice", (ice, roomName) => {
     socket.to(roomName).emit("ice", ice);
+  });
+  socket.on("disconnecting", () => {
+    socket.rooms.forEach((room) =>
+      socket.to(room).emit("bye", socket.nickname, countUsers(room) - 1)
+    );
+  });
+  socket.on("disconnect", () => {
+    wsServer.sockets.emit("room_change", publicRooms());
+  });
+  socket.on("leave_room", (roomName, done) => {
+    socket.leave(roomName);
+    done();
+    socket
+      .to(roomName)
+      .emit("new_count", socket.nickname, countUsers(roomName));
+    wsServer.sockets.emit("room_change", publicRooms());
   });
 });
 
