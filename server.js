@@ -6,7 +6,7 @@ var _socket = require("socket.io");
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 var app = (0, _express["default"])();
 app.set("view engine", "pug");
-app.set("views", __dirname + "/views");
+app.set("views", __dirname + "/");
 app.use("/public", _express["default"]["static"](__dirname + "/public"));
 app.get("/", function (_, res) {
   return res.render("index");
