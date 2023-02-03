@@ -9,7 +9,7 @@ app.set("view engine", "pug");
 app.set("views", __dirname + "/views");
 app.use("/public", _express["default"]["static"](__dirname + "/public"));
 app.get("/", function (_, res) {
-  return res.render("home");
+  return res.render("index");
 });
 app.get("/*", function (_, res) {
   return res.redirect("/");
