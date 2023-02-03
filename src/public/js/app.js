@@ -151,6 +151,8 @@ async function handleWelcomeSubmit(event) {
   const currentCount = wantRoom[0]?.countUsers;
   console.log(currentCount);
   if (currentCount > 1) {
+    roomInput.value = "";
+    nickInput.value = "";
     alert("The room is full.");
   } else {
     roomName = roomInput.value;
